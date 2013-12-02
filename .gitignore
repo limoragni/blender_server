@@ -1,0 +1,15 @@
+#Django
+
+*.log
+*.pot
+
+#Python
+
+*.pyc
+
+#Varables de entorno
+environment.py
+
+#Media
+blender_server/media/
+blender_server/tmp/
