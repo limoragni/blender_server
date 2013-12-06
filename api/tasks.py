@@ -1,26 +1,40 @@
 from blender_server.celery import app
+
 import json
 import socket
 import requests
 import os
+import requests
+import blender_server.config.environment as env
+import sys
 from django.conf import settings
 
 @app.task
 def sendToBlender(data):
 	try:
-		files = getFiles(data['media_data'], data['media_url'], data['code'])
-		#override url de imagenes
-		data['media_url'] = files
-		js = json.dumps(data)
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		s.connect(('127.0.0.1', 13373))
-		s.send(js)
-		result = json.loads(s.recv(1024))
-		s.close()
-		return result
+		# files = getFiles(data['media_data'], data['media_url'], data['code'])
+		# #override url de imagenes
+		# data['media_url'] = files
+		# js = json.dumps(data)
+		# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		# s.connect(('127.0.0.1', 13373))
+		# s.send(js)
+		# response = json.loads(s.recv(1024))
+		# s.close()
+		
+		client = requests.session()
+		client.get(env.RENDER_SUCCESS_URL)  # sets cookie
+		csrftoken = client.cookies['csrftoken']
+		#response["response"]
+		data = dict(url='lslslsls' , csrfmiddlewaretoken=csrftoken)
+
+		headers = {'content-type': 'application/json'}
+		requests.post(env.RENDER_SUCCESS_URL, data=data, headers=headers)
+		return "OK"
 	except Exception as e:
 		err = {'TASK-error': e}
 		return err
+		
 
 
 def download_file(frm, to):

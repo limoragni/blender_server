@@ -92,9 +92,9 @@ def render_detail(request, pk):
 @api_view(['POST'])
 def new_render(request):
     try:
-        ren = Render(code = request.DATA["code"], media_url=request.DATA["media_url"], media_data = request.DATA["media_data"] )
+        ren = Render(code = request.DATA["code"], media_url=request.DATA["media_url"], media_data = request.DATA["media_data"])
         ren.save()
-        r = sendToBlender(request.DATA)
+        r = sendToBlender.delay(request.DATA)
         return JSONResponse(r)
     except Exception as e:
         return JSONResponse({'error': str(e)})

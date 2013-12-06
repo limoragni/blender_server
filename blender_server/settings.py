@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+import config.environment as env
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -58,14 +59,7 @@ WSGI_APPLICATION = 'blender_server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'blender_server',
-        'USER': 'limoragni',
-        'PASSWORD' : 'Milnueve84@',
-    }
-} 
+DATABASES = env.DATABASES
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/

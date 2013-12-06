@@ -1,0 +1,5 @@
+TEMPLATE_NAME = 'testing'
+
+FRAME_START = 0
+FRAME_END = 250
+
