@@ -1,5 +1,6 @@
-TEMPLATE_NAME = 'testing'
+RENDER_PATH = '/home/limoragni/Dev/djangoapps/blender_server/blender_server/media/renders/'
+RENDER_URL = 'http://127.0.0.1:8444/media/renders/'
+CONTAINER = '.ogv'
 
-FRAME_START = 0
-FRAME_END = 250
+TEMPLATE_NAME = 'testing'
 

@@ -34,10 +34,11 @@ def sendToBlender(data):
 		send = dict(code=data['code'], url= response['url'] , csrfmiddlewaretoken=csrftoken)
 		
 		r = client.post(env.RENDER_SUCCESS_URL, data=send, headers=dict(Referer=env.RENDER_SUCCESS_URL))
-		logger.error(r.text)
+		
 		#return g.text
 	except Exception as e:
 		err = {'TASK-error': e}
+		logger.error(err)
 		return err
 		
 
