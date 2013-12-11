@@ -2,7 +2,13 @@ import socketserver
 import json
 import bpy
 import os
-import scripts.config as conf
+import sys
+
+blend_dir = os.path.dirname(os.path.abspath(__file__))
+if blend_dir not in sys.path:
+   sys.path.append(blend_dir)
+
+import config as conf
 
 class Renderer():
     
