@@ -2,10 +2,7 @@ import socketserver
 import json
 import bpy
 import os
-
-RENDER_PATH = '/home/limoragni/Dev/djangoapps/blender_server/blender_server/media/renders/'
-RENDER_URL = 'http://127.0.0.1:8444/media/renders/'
-CONTAINER = '.ogv'
+import scripts.config as conf
 
 class Renderer():
     
@@ -13,13 +10,17 @@ class Renderer():
     
     def render(self, data):
         self.processJSON(data)
-        for i,v in enumerate(self.renderData['media_data']):
-            bpy.data.scenes["Scene"].sequence_editor.sequences_all["img_" + str(i)].directory = self.renderData["media_url"]
-            bpy.data.scenes["Scene"].sequence_editor.sequences["img_" + str(i)].strip_elem_from_frame(0).filename = v
         
-        bpy.data.scenes["Scene"].render.filepath = os.path.join(RENDER_PATH, self.renderData["code"] + '#')
+        imgs_source = ["ozymandias01.jpg.001", "mononoke.jpg", "pacific-rim.jpg"]
+        imgs_remote = self.renderData['media_data']
+        imgs_directory = self.renderData["media_url"]
+        for i, v in enumerate(imgs_source):
+            print(imgs_directory + imgs_remote[i])
+            bpy.data.images[v].filepath = imgs_directory + "/" + imgs_remote[i]
+
+        bpy.data.scenes["Scene"].render.filepath = os.path.join(conf.RENDER_PATH, self.renderData["code"] + '#')
         bpy.ops.render.render(animation=True);
-        
+        print(self.getRenderURL())
         return self.getRenderURL()
 
     def processJSON(self, data):
@@ -29,10 +30,10 @@ class Renderer():
         fs = bpy.data.scenes["Scene"].frame_start
         fe = bpy.data.scenes["Scene"].frame_end
         c = self.renderData["code"]
-        return c + str(fs) + '-' + str(fe) + CONTAINER
+        return c + str(fs) + '-' + str(fe) + conf.CONTAINER
 
     def getRenderURL(self):
-        return os.path.join(RENDER_URL, self.getFilename())
+        return os.path.join(conf.RENDER_URL, self.getFilename())
         
 class MyTCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
@@ -43,7 +44,7 @@ class MyTCPServerHandler(socketserver.BaseRequestHandler):
             data = self.request.recv(1024).decode('UTF-8').strip()
             r = Renderer()
             response = r.render(data)
-            self.request.sendall(bytes(json.dumps({'response': response}), 'UTF-8'))
+            self.request.sendall(bytes(json.dumps({'url': response}), 'UTF-8'))
         except Exception as e:
             self.request.sendall(bytes(json.dumps({'error':e}), 'UTF-8'))
             
