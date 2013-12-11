@@ -6,6 +6,7 @@
 #Python
 
 *.pyc
+*.save
 
 #Varables de entorno
 environment.py
@@ -13,3 +14,6 @@ environment.py
 #Media
 blender_server/media/
 blender_server/tmp/
+
+#blender
+blender/blender-2.69/
