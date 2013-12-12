@@ -9,6 +9,8 @@ import blender_server.config.environment as env
 import sys
 from django.conf import settings
 
+from subprocess import Popen, PIPE
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,7 @@ logger = logging.getLogger(__name__)
 def sendToBlender(data):
 	try:
 		files = getFiles(data['media_data'], data['media_url'], data['code'])
+		logger.error(data['media_url'])
 		#override url de imagenes
 		data['media_url'] = files
 		js = json.dumps(data)
@@ -24,18 +27,42 @@ def sendToBlender(data):
 		s.send(js)
 		response = json.loads(s.recv(1024))
 		s.close()
-				
+		
+		##TODO:MOVER A OTRA TAREA!!
+
+		process = Popen(['ffmpeg', '-i', response["path"],'-y', '-b', '345k', os.path.splitext(response["path"])[0]  + ".webm"], stdout=PIPE)
+		stdout, stderr = process.communicate()
+
+		process = Popen([
+			'ffmpeg', 
+			'-i', response["path"],
+			'-y', 
+			'-vcodec',
+			'libx264',
+			'-b', 
+			'345k',
+			'-bt',
+			'345k',
+			'-threads',
+			'0',
+			os.path.splitext(response["path"])[0]  + ".mp4"], stdout=PIPE)
+		stdout, stderr = process.communicate()
+
+		vids = {
+			'mp4': os.path.splitext(response["url"])[0]  + ".mp4",
+			'webm': os.path.splitext(response["url"])[0]  + ".webm",
+			'ogg': response["url"]
+		} 
+		
 		client = requests.session()
 		x = client.get(env.RENDER_SUCCESS_URL)  # sets cookie
 		#x = requests.get(env.RENDER_SUCCESS_URL)  # sets cookie
 		csrftoken = x.text
 		
 		#response["response"]
-		send = dict(code=data['code'], url= response['url'] , csrfmiddlewaretoken=csrftoken)
-		
+		send = dict(code=data['code'], urls = json.dumps(vids) , csrfmiddlewaretoken=csrftoken)
 		r = client.post(env.RENDER_SUCCESS_URL, data=send, headers=dict(Referer=env.RENDER_SUCCESS_URL))
-		
-		#return g.text
+	
 	except Exception as e:
 		err = {'TASK-error': e}
 		logger.error(err)

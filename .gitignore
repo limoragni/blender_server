@@ -13,3 +13,6 @@ environment.py
 #Media
 blender_server/media/
 blender_server/tmp/
+
+#config_blender
+blender/scripts/config.py

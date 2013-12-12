@@ -25,9 +25,9 @@ class Renderer():
             bpy.data.images[v].filepath = imgs_directory + "/" + imgs_remote[i]
 
         bpy.data.scenes["Scene"].render.filepath = os.path.join(conf.RENDER_PATH, self.renderData["code"] + '#')
-        bpy.ops.render.render(animation=True);
-        print(self.getRenderURL())
-        return self.getRenderURL()
+        #bpy.ops.render.render(animation=True);
+        response = {'path': self.getRenderFilePath(), 'url': self.getRenderURL() }
+        return response
 
     def processJSON(self, data):
         self.renderData = json.loads(data)
@@ -40,6 +40,9 @@ class Renderer():
 
     def getRenderURL(self):
         return os.path.join(conf.RENDER_URL, self.getFilename())
+
+    def getRenderFilePath(self):
+        return os.path.join(conf.RENDER_PATH, self.getFilename())
         
 class MyTCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
@@ -50,7 +53,7 @@ class MyTCPServerHandler(socketserver.BaseRequestHandler):
             data = self.request.recv(1024).decode('UTF-8').strip()
             r = Renderer()
             response = r.render(data)
-            self.request.sendall(bytes(json.dumps({'url': response}), 'UTF-8'))
+            self.request.sendall(bytes(json.dumps(response), 'UTF-8'))
         except Exception as e:
             self.request.sendall(bytes(json.dumps({'error':e}), 'UTF-8'))
             
