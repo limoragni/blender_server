@@ -30,28 +30,19 @@ def sendToBlender(data):
 		
 		##TODO:MOVER A OTRA TAREA!!
 
-		process = Popen(['ffmpeg', '-i', response["path"],'-y', '-b', '345k', os.path.splitext(response["path"])[0]  + ".webm"], stdout=PIPE)
-		stdout, stderr = process.communicate()
+		webm = Popen(['ffmpeg', '-i', response["path"],'-y', '-vcodec', 'libvpx', '-f', 'webm','-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".webm"], stdout=PIPE)
+		stdout, stderr = webm.communicate()
 
-		process = Popen([
-			'ffmpeg', 
-			'-i', response["path"],
-			'-y', 
-			'-vcodec',
-			'libx264',
-			'-b', 
-			'345k',
-			'-bt',
-			'345k',
-			'-threads',
-			'0',
-			os.path.splitext(response["path"])[0]  + ".mp4"], stdout=PIPE)
-		stdout, stderr = process.communicate()
+		mp4 = Popen(['ffmpeg', '-i', response["path"],'-y', '-bt', '1500k', '-vcodec', 'libtheora', '-g', '30', '-s', '640x360',  os.path.splitext(response["path"])[0]  + ".ogv"], stdout=PIPE)
+		stdout, stderr = mp4.communicate()
+
+		ogv = Popen(['ffmpeg', '-i', response["path"],'-y', '-c:v', 'libx264', '-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".mp4"], stdout=PIPE)
+		stdout, stderr = ogv.communicate()
 
 		vids = {
 			'mp4': os.path.splitext(response["url"])[0]  + ".mp4",
 			'webm': os.path.splitext(response["url"])[0]  + ".webm",
-			'ogg': response["url"]
+			'ogg':  os.path.splitext(response["url"])[0]  + ".ogv"
 		} 
 		
 		client = requests.session()
