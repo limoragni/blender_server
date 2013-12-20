@@ -28,15 +28,33 @@ def sendToBlender(data):
 		response = json.loads(s.recv(1024))
 		s.close()
 		
+		if data['render_type'] == 'FINAL':
+			quality = 'high'
+		else:
+			quality = 'low'
 		##TODO:MOVER A OTRA TAREA!!
+		shell = {
+			'webm': {
+				'high': ['ffmpeg', '-i', response["path"],'-y', '-vcodec', 'libvpx', '-f', 'webm','-preset', 'veryslow','-qp','0','-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".webm"] ,
+				'low':['ffmpeg', '-i', response["path"],'-y', '-vcodec', 'libvpx', '-f', 'webm','-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".webm"] 
+			},
+			'ogv': {
+				'high':['ffmpeg', '-i', response["path"],'-y', '-bt', '1500k', '-vcodec', 'libtheora', '-preset', 'veryslow','-qp','0',  os.path.splitext(response["path"])[0]  + ".ogv"],
+				'low': ['ffmpeg', '-i', response["path"],'-y', '-bt', '1500k', '-vcodec', 'libtheora', '-g', '30', '-s', '640x360',  os.path.splitext(response["path"])[0]  + ".ogv"]
+			},
+			'mp4': {
+				'high': ['ffmpeg', '-i', response["path"],'-y', '-c:v', 'libx264','-preset', 'veryslow','-qp','0', '-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".mp4"],
+				'low': ['ffmpeg', '-i', response["path"],'-y', '-c:v', 'libx264', '-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".mp4"]
+			}
+		}
 
-		webm = Popen(['ffmpeg', '-i', response["path"],'-y', '-vcodec', 'libvpx', '-f', 'webm','-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".webm"], stdout=PIPE)
+		webm = Popen(shell['webm'][quality], stdout=PIPE)
 		stdout, stderr = webm.communicate()
 
-		mp4 = Popen(['ffmpeg', '-i', response["path"],'-y', '-bt', '1500k', '-vcodec', 'libtheora', '-g', '30', '-s', '640x360',  os.path.splitext(response["path"])[0]  + ".ogv"], stdout=PIPE)
+		mp4 = Popen(shell['mp4'][quality], stdout=PIPE)
 		stdout, stderr = mp4.communicate()
 
-		ogv = Popen(['ffmpeg', '-i', response["path"],'-y', '-c:v', 'libx264', '-strict', 'experimental', os.path.splitext(response["path"])[0]  + ".mp4"], stdout=PIPE)
+		ogv = Popen(shell['ogv'][quality], stdout=PIPE)
 		stdout, stderr = ogv.communicate()
 
 		vids = {
@@ -51,7 +69,7 @@ def sendToBlender(data):
 		csrftoken = x.text
 		
 		#response["response"]
-		send = dict(code=data['code'], urls = json.dumps(vids) , csrfmiddlewaretoken=csrftoken)
+		send = dict(code=data['code'], render_type=data["render_type"], urls = json.dumps(vids) , csrfmiddlewaretoken=csrftoken)
 		r = client.post(env.RENDER_SUCCESS_URL, data=send, headers=dict(Referer=env.RENDER_SUCCESS_URL))
 	
 	except Exception as e:
