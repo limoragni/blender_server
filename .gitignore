@@ -15,10 +15,9 @@ environment.py
 blender_server/media/
 blender_server/tmp/
 
-<<<<<<< HEAD
+
 #blender
 blender/blender-2.69/
-=======
+
 #config_blender
 blender/scripts/config.py
->>>>>>> f6e210ea8ba8488c3781ba215d931f7da089a12c
