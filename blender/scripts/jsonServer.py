@@ -16,7 +16,7 @@ class Renderer():
     
     def render(self, data):
         self.processJSON(data)
-        
+        self.setTemplate(self.renderData['template'], self.renderData['render_type'])
         imgs_source = ["ozymandias01.jpg.001", "mononoke.jpg", "pacific-rim.jpg"]
         imgs_remote = self.renderData['media_data']
         imgs_directory = self.renderData["media_url"]
@@ -24,10 +24,10 @@ class Renderer():
             print(imgs_directory + imgs_remote[i])
             bpy.data.images[v].filepath = imgs_directory + "/" + imgs_remote[i]
 
-        bpy.data.scenes["Scene"].render.filepath = os.path.join(conf.RENDER_PATH, self.renderData["code"] + '#')
+        bpy.data.scenes["Scene"].render.filepath = os.path.join(conf.RENDER_PATH, self.renderData["code"] + "_" + self.renderData["render_type"] + '#')
         bpy.ops.render.render(animation=True);
-        print(self.getRenderURL())
-        return self.getRenderURL()
+        response = {'path': self.getRenderFilePath(), 'url': self.getRenderURL() }
+        return response
 
     def processJSON(self, data):
         self.renderData = json.loads(data)
@@ -35,12 +35,23 @@ class Renderer():
     def getFilename(self):
         fs = bpy.data.scenes["Scene"].frame_start
         fe = bpy.data.scenes["Scene"].frame_end
-        c = self.renderData["code"]
+        c = self.renderData["code"] + "_" + self.renderData["render_type"]
         return c + str(fs) + '-' + str(fe) + conf.CONTAINER
 
     def getRenderURL(self):
         return os.path.join(conf.RENDER_URL, self.getFilename())
-        
+
+    def getRenderFilePath(self):
+        return os.path.join(conf.RENDER_PATH, self.getFilename())
+    
+    def setTemplate(self, name, render_type):
+        #bpy.ops.wm.open_mainfile(filepath= '/home/limoragni/Dev/djangoapps/blender_server/blender/templates/template-hand/testing02-03_hand.blend', load_ui=False, use_scripts=True)
+        if render_type == "FINAL":
+            quality = 60
+        else:
+            quality = 40
+        bpy.data.scenes["Scene"].render.resolution_percentage = quality
+
 class MyTCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
 
@@ -50,7 +61,7 @@ class MyTCPServerHandler(socketserver.BaseRequestHandler):
             data = self.request.recv(1024).decode('UTF-8').strip()
             r = Renderer()
             response = r.render(data)
-            self.request.sendall(bytes(json.dumps({'url': response}), 'UTF-8'))
+            self.request.sendall(bytes(json.dumps(response), 'UTF-8'))
         except Exception as e:
             self.request.sendall(bytes(json.dumps({'error':e}), 'UTF-8'))
             

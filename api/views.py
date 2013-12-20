@@ -92,7 +92,7 @@ def render_detail(request, pk):
 @api_view(['POST'])
 def new_render(request):
     try:
-        ren = Render(code = request.DATA["code"], media_url=request.DATA["media_url"], media_data = request.DATA["media_data"])
+        ren = Render(code = request.DATA["code"],render_type=request.DATA["render_type"], media_url=request.DATA["media_url"], media_data = request.DATA["media_data"])
         ren.save()
         r = sendToBlender.delay(request.DATA)
         return JSONResponse(r)
