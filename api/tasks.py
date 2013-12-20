@@ -4,7 +4,6 @@ import json
 import socket
 import requests
 import os
-import requests
 import blender_server.config.environment as env
 import sys
 from django.conf import settings
