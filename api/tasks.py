@@ -38,7 +38,7 @@ def sendToBlender(data):
 def openBlender(template):
 	logger.error(env.TEMPLATES[template]["path"])
 
-	blend_args = ["blender", "-b", env.TEMPLATES[template]["path"], "-P", env.BLENDER_SCRIPT]
+	blend_args = [env.BLENDER_EXEC, "-b", env.TEMPLATES[template]["path"], "-P", env.BLENDER_SCRIPT]
 	blend = Popen(blend_args)
 	return blend
 	#stdout, stderr = blend.communicate()
