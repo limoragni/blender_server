@@ -17,12 +17,15 @@ class Renderer():
     def render(self, data):
         self.processJSON(data)
         self.setTemplate(self.renderData['template'], self.renderData['render_type'])
-        imgs_source = ["ozymandias01.jpg.001", "mononoke.jpg", "pacific-rim.jpg"]
+        #imgs_source = ["ozymandias01.jpg.001", "mononoke.jpg", "pacific-rim.jpg"]
         imgs_remote = self.renderData['media_data']
         imgs_directory = self.renderData["media_url"]
-        for i, v in enumerate(imgs_source):
-            print(imgs_directory + imgs_remote[i])
-            bpy.data.images[v].filepath = imgs_directory + "/" + imgs_remote[i]
+        
+        for i in range(1, int(self.renderData["image_number"])):
+           bpy.data.images["imagen0" + str(i)].filepath = imgs_directory + "/" + imgs_remote[i]
+        # for i, v in enumerate(imgs_source):
+        #     print(imgs_directory + imgs_remote[i])
+        #     bpy.data.images[v].filepath = imgs_directory + "/" + imgs_remote[i]
 
         bpy.data.scenes["Scene"].render.filepath = os.path.join(conf.RENDER_PATH, self.renderData["code"] + "_" + self.renderData["render_type"] + '#')
         bpy.ops.render.render(animation=True);
@@ -30,7 +33,7 @@ class Renderer():
         return response
 
     def processJSON(self, data):
-        self.renderData = json.loads(data)
+        self.renderData = data
 
     def getFilename(self):
         fs = bpy.data.scenes["Scene"].frame_start
@@ -45,7 +48,7 @@ class Renderer():
         return os.path.join(conf.RENDER_PATH, self.getFilename())
     
     def setTemplate(self, name, render_type):
-        #bpy.ops.wm.open_mainfile(filepath= '/home/limoragni/Dev/djangoapps/blender_server/blender/templates/template-hand/testing02-03_hand.blend', load_ui=False, use_scripts=True)
+        #bpy.ops.wm.open_mainfile(filepath= '/home/limoragni/Dev/djangoapps/blender_server/blender/templates/template-hand/testing02-03_hand.blend')
         if render_type == "FINAL":
             quality = 60
         else:
@@ -59,11 +62,13 @@ class MyTCPServerHandler(socketserver.BaseRequestHandler):
     def handle(self):
         try:
             data = self.request.recv(1024).decode('UTF-8').strip()
+            loaded_data = json.loads(data)
             r = Renderer()
-            response = r.render(data)
+            response = r.render(loaded_data)
             self.request.sendall(bytes(json.dumps(response), 'UTF-8'))
+            self.shutdown()
         except Exception as e:
-            self.request.sendall(bytes(json.dumps({'error':e}), 'UTF-8'))
+            self.request.sendall(bytes(json.dumps({'BLEND_SERVER_ERROR':"ERROR"}), 'UTF-8'))
             
 
 server = MyTCPServer(('127.0.0.1', 13373), MyTCPServerHandler)
