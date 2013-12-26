@@ -69,7 +69,7 @@ class MyTCPServerHandler(socketserver.BaseRequestHandler):
             response = r.render(loaded_data)
             self.request.sendall(bytes(json.dumps(response), 'UTF-8'))
         except Exception as e:
-            self.request.sendall(bytes(json.dumps({'BLEND_SERVER_ERROR':"ERROR"}), 'UTF-8'))
+            self.request.sendall(bytes(json.dumps({'BLEND_SERVER_ERROR':e.strerror}), 'UTF-8'))
             
 
 server = MyTCPServer(('127.0.0.1', 13373), MyTCPServerHandler)
