@@ -17,12 +17,14 @@ class Renderer():
     def render(self, data):
         self.processJSON(data)
         self.setTemplate(self.renderData['template'], self.renderData['render_type'])
-        #imgs_source = ["ozymandias01.jpg.001", "mononoke.jpg", "pacific-rim.jpg"]
+        #imgs_source = ["ozymandias01.jpg.001", "mononoke.jpg", "pacific-rim.jpg"]S
         imgs_remote = self.renderData['media_data']
         imgs_directory = self.renderData["media_url"]
         
         for i in range(1, int(self.renderData["image_number"])):
            bpy.data.images["imagen0" + str(i)].filepath = imgs_directory + "/" + imgs_remote[i]
+        
+
         # for i, v in enumerate(imgs_source):
         #     print(imgs_directory + imgs_remote[i])
         #     bpy.data.images[v].filepath = imgs_directory + "/" + imgs_remote[i]
@@ -66,7 +68,6 @@ class MyTCPServerHandler(socketserver.BaseRequestHandler):
             r = Renderer()
             response = r.render(loaded_data)
             self.request.sendall(bytes(json.dumps(response), 'UTF-8'))
-            self.shutdown()
         except Exception as e:
             self.request.sendall(bytes(json.dumps({'BLEND_SERVER_ERROR':"ERROR"}), 'UTF-8'))
             
