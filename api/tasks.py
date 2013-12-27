@@ -73,6 +73,10 @@ def convert(path, render_type, response_url):
 	else:
 		quality = 'low'
 	##TODO:MOVER A OTRA TAREA!!
+	# ffmpeg -i /path/ -y  -vcodec libvpx -f webm -preset veryslow -qp 0 -strict experimental path/out.webm
+	#ffmpeg -i path/in -y -bt 1500k -vcodec libtheora -preset veryslow -qp 0 path/out.ogv
+	#ffmpeg -i path/in -y -c:v  libx264 -preset veryslow -qp 0 -strict experimental path/out.mp4
+
 	shell = {
 	    'webm': {
 	        'high': ['ffmpeg', '-i', path,'-y', '-vcodec', 'libvpx', '-f', 'webm','-preset', 'veryslow','-qp','0','-strict', 'experimental', os.path.splitext(path)[0]  + ".webm"] ,
