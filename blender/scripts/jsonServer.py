@@ -12,7 +12,7 @@ if blend_dir not in sys.path:
 
 import config as conf
 
-sys.path.append('/opt/python3.3/lib/python3.3/site-packages/') 
+sys.path.append(conf.PYTHON_PATH) 
 import redis
 
 def execAll():
