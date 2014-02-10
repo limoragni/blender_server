@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User, Group
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from .models import Render
+from .models import Render, Render_state
 from .serializers import RenderSerializer
 
 from rest_framework import viewsets
@@ -13,6 +13,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import sys
 
+
+from celery.task.control import revoke
 from tasks import sendToBlender
 import json
 
@@ -44,9 +46,7 @@ class JSONResponse(HttpResponse):
 
 @csrf_exempt
 def render_list(request):
-    """
-    List all code snippets, or create a new snippet.
-    """
+   
     if request.method == 'GET':
         ren = Render.objects.all()
         serializer = RenderSerializer(ren, many=True)
@@ -63,9 +63,7 @@ def render_list(request):
 
 @csrf_exempt
 def render_detail(request, pk):
-    """
-    Retrieve, update or delete a code snippet.
-    """
+    
     try:
         ren = Render.objects.get(pk=pk)
     except Render.DoesNotExist:
@@ -92,9 +90,22 @@ def render_detail(request, pk):
 @api_view(['POST'])
 def new_render(request):
     try:
-        ren = Render(code = request.DATA["code"], render_type=request.DATA["render_type"], media_url=request.DATA["media_url"], media_data = request.DATA["media_data"])
-        ren.save()
         r = sendToBlender.delay(request.DATA)
-        return JSONResponse(r)
+        ren = Render(code = request.DATA["code"], render_type=request.DATA["render_type"], media_url=request.DATA["media_url"], media_data = request.DATA["media_data"], task_id=r.id, render_state=Render_state.objects.get(code=1))
+        ren.save()
+        return JSONResponse(r.id)
     except Exception as e:
-        return JSONResponse({'error': str(e)})
+        return JSONResponse({'error_on_new': str(e)})
+
+#@csrf_exempt
+@api_view(['POST'])
+def stop_render(request):
+    try:
+        ren = Render.objects.filter(code=request.DATA["project"], render_state= Render_state.objects.get(code=1))
+        for r in ren:
+            revoke(r.task_id)
+            r.render_state = Render_state.objects.get(code=3)
+            r.save();
+        return JSONResponse("OK")
+    except Exception as e:
+        return JSONResponse({'error_on_stop': str(e)})

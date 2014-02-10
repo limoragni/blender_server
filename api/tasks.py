@@ -7,6 +7,7 @@ import blender_server.config.environment as env
 import sys
 import time
 import redis
+from .models import Render, Render_state
 
 from blender_server.celery import app
 from django.conf import settings
@@ -16,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @app.task
-def sendToBlender(data, task_id=None):
+def sendToBlender(data):
 	try:
 		files = getFiles(data['media_data'], data['media_url'], data['code'])
 		#override url de imagenes
@@ -31,7 +32,8 @@ def sendToBlender(data, task_id=None):
 		
 		response = getResponse()
 		vids = convert(response["path"], data['render_type'], response["url"])
-		onRenderSuccess(data, vids)
+		logger.error("TASKID: " + str(sendToBlender.request.id))
+		onRenderSuccess(data, vids, sendToBlender.request.id)
 	
 	except Exception as e:
 		name = sys.exc_info()[1]
@@ -48,7 +50,6 @@ def sendToBlender(data, task_id=None):
 		# return err
 
 def openBlender(template):
-	logger.error(env.TEMPLATES[template]["path"])
 	blend_args = [env.BLENDER_EXEC, "-b", env.TEMPLATES[template]["path"], "-P", env.BLENDER_SCRIPT]
 	blend = Popen(blend_args)
 	blend.communicate()
@@ -79,13 +80,16 @@ def getResponse():
 # 	s.close()
 # 	return response		
 
-def onRenderSuccess(data, vids):
+def onRenderSuccess(data, vids, task_id):
 	client = requests.session()
 	x = client.get(env.RENDER_SUCCESS_URL)  # sets cookie
 	csrftoken = x.text
 	
 	send = dict(code=data['code'], render_type=data["render_type"], urls = json.dumps(vids) , csrfmiddlewaretoken=csrftoken)
-	r = client.post(env.RENDER_SUCCESS_URL, data=send, headers=dict(Referer=env.RENDER_SUCCESS_URL))	
+	r = client.post(env.RENDER_SUCCESS_URL, data=send, headers=dict(Referer=env.RENDER_SUCCESS_URL))
+	rdb = Render.objects.get(task_id=task_id)
+	rst = Render_state.objects.get(code=2)
+	rdb.render_state = rst
 
 def convert(path, render_type, response_url):
 	if render_type == 'FINAL':
