@@ -1,4 +1,4 @@
-TCP server for Belnder integration
+TCP server for Blender integration
 ==================
 
 
